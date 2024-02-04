@@ -34,6 +34,10 @@ export class Functions3dService {
     return  Math.sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
   }
 
+  dotProduct(a:Vector, b: Vector): number{
+    return a.x * b.x  + a.y * b.y + a.z * b.z;
+  }
+
   crossProduct(a: Vector, b: Vector): Vector{
     let res = new Vector();
     res.x = a.y * b.z - a.z * b.y;
@@ -42,19 +46,15 @@ export class Functions3dService {
     return res;
   }
 
-  dotProduct(a:Vector, b: Vector): number{
-    return a.x * b.x  + a.y * b.y + a.z * b.z;
-  }
-
   drawLine(ctx: any, x1: number, y1: number, x2: number, y2: number){
-    ctx.beginPath();
+    //ctx.beginPath(); // THIS was preventing 100% opacity !! 
     ctx.moveTo(x1, y1); 
     ctx.lineTo(x2,y2); 
     ctx.stroke();
   }
 
   drawTriangle(tr:Triangle, ctx: any){
-    ctx.beginPath(); // Without this, it acts as a fill ! 
+    ctx.beginPath();
     //First line 
     ctx.moveTo(tr.p[0].x, tr.p[0].y); 
     ctx.lineTo(tr.p[1].x, tr.p[1].y); 
@@ -67,9 +67,11 @@ export class Functions3dService {
     //3rd line (goes back to first vertex) (can use closePath also)
     ctx.lineTo(tr.p[0].x, tr.p[0].y); 
     ctx.stroke();
+    //ctx.closePath();
   }
 
-  sortTriangles(a:Triangle, b:Triangle){
+  //This is a hack and should be replaced 
+  sortTrianglesByDepth(a:Triangle, b:Triangle){
     let resA = 0; 
     let resB = 0;
     //Calculate depth midpoint from 2 triangles
@@ -81,7 +83,6 @@ export class Functions3dService {
       return resB - resA;
   }
 
-  // http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
   fillBottomFlatTriangle(t: Triangle, ctx: any){
     let A = t.p[0]; 
     let B = t.p[1]; 
@@ -122,7 +123,9 @@ export class Functions3dService {
     }
   }
 
+  // http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
   fillTriangle(t:Triangle, ctx:any){
+    ctx.beginPath();
 
     //First sort vertices by Y 
     t.p.sort((a,b) => a.y - b.y);
@@ -146,9 +149,9 @@ export class Functions3dService {
     {
       /* general case - split the triangle in a topflat and bottom-flat one */
       let v4 = new Vector(v1.x + (v2.y - v1.y) / (v3.y - v1.y) * (v3.x - v1.x), v2.y,0);
-
-      this.fillTopFlatTriangle({p:[v2,v4,v3], color: '#000000'}, ctx);
-      this.fillBottomFlatTriangle({p:[v1,v2,v4], color: '#000000'}, ctx);
+      
+      this.fillTopFlatTriangle(new Triangle(v2,v4,v3,t.color), ctx);
+      this.fillBottomFlatTriangle(new Triangle(v1,v2,v4,t.color), ctx);
     }
   }
 

@@ -44,9 +44,9 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.canvas = document.querySelector("canvas");
     this.ctx = this.canvas?.getContext("2d");
-    this.c_height = 500;
-    this.c_width = 500;
-    this.framerate = 1;
+    this.c_height = this.canvas!.height;
+    this.c_width = this.canvas!.width;
+    this.framerate = 60;
     this.elapsedTime = 0;
 
     if (!this.ctx) {
@@ -100,6 +100,7 @@ export class HomeComponent implements OnInit {
     //Drawing each triangle of the mesh 
     for (let index = 0; index < this.resultMesh.m.length; index++) {
       //triangle to be projected
+      //Triangle will soon contain true color information here. For now it's black by default (constructor)
       let tri = this.resultMesh.m[index];
 
       //for storing result of each step 
@@ -149,14 +150,15 @@ export class HomeComponent implements OnInit {
       // Drawing starts here 
       if (resNormal < 0.0) {
         //Lighting
-        let lightDirection = new Vector(0, 0, -1);
+        let lightDirection = new Vector(50, 0, 0);
         let l = this.Fun.magnitude(lightDirection);
         lightDirection.x /= l; lightDirection.y /= l; lightDirection.z /= l;
 
         //Choosing color according to light - object angle 
         let dp = this.Fun.dotProduct(normal, lightDirection);
-        let colorFactor = 300;
-        triTranslated.color = "rgb(" + 0 + "," + 0 + "," + dp * colorFactor + ')';
+        let lightStrength = 25;
+        //triTranslated.color = tri.color;
+        triTranslated.color.addColor(dp * lightStrength, dp * lightStrength, dp * lightStrength);
 
         //Project:
         this.Fun.useMatrixOnTriangle(triTranslated, triProjected, this.matProj);
@@ -182,31 +184,26 @@ export class HomeComponent implements OnInit {
     }
 
     //Sort triangles from back to front
-    trianglesToRaster.sort(this.Fun.sortTriangles);
+    trianglesToRaster.sort(this.Fun.sortTrianglesByDepth);
 
     //Draw triangles here 
     for (let i = 0; i < trianglesToRaster.length; i++) {
 
-      //Don't care about lighting for now 
-      //this.ctx.strokeStyle = trianglesToRaster[i].color;
-      this.ctx.strokeStyle = "blue";
+      //Using lighting (color)
+      this.ctx.strokeStyle = trianglesToRaster[i].color.toStrokeStyle();
+
+      //Or this for debug (no lighting)
+      //this.ctx.strokeStyle = "blue";
+
       this.Fun.fillTriangle(trianglesToRaster[i], this.ctx);
 
       this.ctx.strokeStyle = "red";
-      //this.Fun.drawTriangle(trianglesToRaster[i], this.ctx);
+      this.Fun.drawTriangle(trianglesToRaster[i], this.ctx);
     }
 
-    // setTimeout(() => {
-    //   this.onUserUpdate(time);
-    // }, 1000 / this.framerate);
-
-    if(time > this.elapsedTime + 10){
+    //setTimeout(() => {
       window.requestAnimationFrame(this.onUserUpdate.bind(this));
-      this.elapsedTime = time;
-    }
-
-
+    //}, 1000 / this.framerate);
   }
-
 
 }

@@ -1,17 +1,14 @@
-export class Vector{
-    x: number;
-    y: number;
-    z: number;
+import { Vector } from "./Vector";
 
-    constructor(x=0, y=0, z=0){
-        this.x = x; 
-        this.y = y;
-        this.z = z; 
+export class Triangle{
+    p: Vector[] = [];
+    color!: string;
+
+    constructor(){
+         this.p.push(new Vector());
+         this.p.push(new Vector());
+         this.p.push(new Vector());
+         this.color = "#009900";
     }
 
-    scale(s:number){
-        this.x *= s;
-        this.y *= s;
-        this.z *= s;
-    }
 }

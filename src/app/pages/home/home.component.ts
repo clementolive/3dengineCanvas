@@ -4,6 +4,7 @@ import { Matrix } from 'src/app/core/Matrix';
 import { Mesh } from 'src/app/core/Mesh';
 import { Triangle } from 'src/app/core/Triangle';
 import { Vector } from 'src/app/core/Vector';
+import { DrawService } from 'src/app/services/draw.service';
 import { Functions3dService } from 'src/app/services/functions3d.service';
 
 @Component({
@@ -38,8 +39,11 @@ export class HomeComponent implements OnInit {
   resultMesh: Mesh = new Mesh();
   vCamera = new Vector();
 
+  zBuffer: number[] = [];
+
   constructor(private httpClient: HttpClient,
-    private Fun: Functions3dService) { }
+    private Fun: Functions3dService, 
+    private Draw: DrawService) { }
 
   ngOnInit(): void {
     this.canvas = document.querySelector("canvas");
@@ -52,6 +56,11 @@ export class HomeComponent implements OnInit {
     if (!this.ctx) {
       alert("Can't load context. Try another browser.");
       return;
+    }
+
+    //Init zBuffer
+    for (let i = 0; i < this.c_height * this.c_width; i++) {
+      this.zBuffer.push(0);
     }
 
     //Projection matrix
@@ -68,9 +77,9 @@ export class HomeComponent implements OnInit {
     this.rotSpeedZ = 1;
 
     //Loading .OBJ file and parsing it, then we get data in our Mesh 
-    this.httpClient.get('assets/ship.obj', { responseType: 'text' })
+    this.httpClient.get('assets/teapot.obj', { responseType: 'text' })
       .subscribe(data => {
-        this.resultMesh = this.Fun.parsingObj(data);
+        this.resultMesh = this.Draw.parsingObj(data);
       });
 
     //Starting animation
@@ -147,12 +156,14 @@ export class HomeComponent implements OnInit {
         normal.y * (triTranslated.p[0].y - this.vCamera.y) +
         normal.z * (triTranslated.p[0].z - this.vCamera.z)
 
-      // Drawing starts here 
+      // DRAW STARTS HERE 
       if (resNormal < 0.0) {
         //Lighting
         let lightDirection = new Vector(50, 0, 0);
         let l = this.Fun.magnitude(lightDirection);
         lightDirection.x /= l; lightDirection.y /= l; lightDirection.z /= l;
+
+        let lightDistance = 0;
 
         //Choosing color according to light - object angle 
         let dp = this.Fun.dotProduct(normal, lightDirection);
@@ -191,18 +202,18 @@ export class HomeComponent implements OnInit {
 
       //Using lighting (color)
       this.ctx.strokeStyle = trianglesToRaster[i].color.toStrokeStyle();
-
+      //this.ctx.fillStyle = trianglesToRaster[i].color.toStrokeStyle();
       //Or this for debug (no lighting)
       //this.ctx.strokeStyle = "blue";
 
-      this.Fun.fillTriangle(trianglesToRaster[i], this.ctx);
+      this.Draw.fillTriangle(trianglesToRaster[i], this.ctx);
 
       this.ctx.strokeStyle = "red";
-      this.Fun.drawTriangle(trianglesToRaster[i], this.ctx);
+      //this.Draw.drawTriangle(trianglesToRaster[i], this.ctx);
     }
 
     //setTimeout(() => {
-      window.requestAnimationFrame(this.onUserUpdate.bind(this));
+    window.requestAnimationFrame(this.onUserUpdate.bind(this));
     //}, 1000 / this.framerate);
   }
 

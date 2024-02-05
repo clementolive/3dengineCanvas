@@ -11,47 +11,6 @@ export class Functions3dService {
 
   constructor() { }
 
-  // V = V * S 
-  scaleVector(v: Vector, s: number) {
-    v.x *= s; v.y *= s; v.z *= s;
-  }
-
-  // R = A + B 
-  addVectors(a: Vector, b: Vector): Vector {
-    let res = new Vector();
-    res.x = a.x + b.x; res.y = a.y + b.y; res.z = a.z + b.z;
-    return res;
-  }
-
-  // R = A - B 
-  subVectors(a: Vector, b: Vector): Vector {
-    let res = new Vector();
-    res.x = a.x - b.x; res.y = a.y - b.y; res.z = a.z - b.z;
-    return res;
-  }
-
-  magnitude(a:Vector): number{
-    return  Math.sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
-  }
-
-  distance(a: Vector, b:Vector): number{
-    return  Math.sqrt( (b.x - a.x) * (b.x - a.x) + 
-                 (b.y - a.y) * (b.y - a.y) +
-                 (b.z - a.z) * (b.z - a.z));
-   }
-
-  dotProduct(a:Vector, b: Vector): number{
-    return a.x * b.x  + a.y * b.y + a.z * b.z;
-  }
-
-  crossProduct(a: Vector, b: Vector): Vector{
-    let res = new Vector();
-    res.x = a.y * b.z - a.z * b.y;
-    res.y = a.z * b.x - a.x * b.z;
-    res.z = a.x * b.y - a.y * b.x;
-    return res;
-  }
-
   //This is a hack and should be replaced 
   sortTrianglesByDepth(a:Triangle, b:Triangle){
     let resA = 0; 

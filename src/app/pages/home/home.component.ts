@@ -67,7 +67,7 @@ export class HomeComponent implements OnInit {
     this.near = 100;
     this.far = 1000;
     this.aspectRatio = this.c_height / this.c_width;
-    this.fov = 90; // acts as zoom 
+    this.fov = 60; // acts as zoom 
     this.fovRad = 1 / Math.tan(this.fov * 0.5 / 180 * 3.14159); //acts as zoom 
     this.matProj.initProj(this.aspectRatio, this.fovRad, this.far, this.near);
 
@@ -77,7 +77,7 @@ export class HomeComponent implements OnInit {
     this.rotSpeedZ = 1;
 
     //Loading .OBJ file and parsing it, then we get data in our Mesh 
-    this.httpClient.get('assets/teapot.obj', { responseType: 'text' })
+    this.httpClient.get('assets/ship.obj', { responseType: 'text' })
       .subscribe(data => {
         this.resultMesh = this.Draw.parsingObj(data);
       });
@@ -97,7 +97,7 @@ export class HomeComponent implements OnInit {
     this.ctx.fillRect(0, 0, this.c_width, this.c_height);
 
     //Angle changes with time 
-    this.theta += 0.02;
+    this.theta += 0.01;
 
     //Setup rotation matrixes
     this.matRotX.initRotX(this.rotSpeedX, this.theta);
@@ -139,35 +139,37 @@ export class HomeComponent implements OnInit {
       let normal = new Vector();
 
       //We get two vectors from current triangle
-      line1 = this.Fun.subVectors(triTranslated.p[1], triTranslated.p[0]);
-      line2 = this.Fun.subVectors(triTranslated.p[2], triTranslated.p[0]);
+      line1 = triTranslated.p[1].subVectors(triTranslated.p[0]);
+      line2 = triTranslated.p[2].subVectors(triTranslated.p[0]);
 
       //We can now calculate normal with cross-product
-      normal = this.Fun.crossProduct(line1, line2);
+      normal = line1.crossProduct(line2);
 
-      //Just to normalize: (Pythagore's formula for distance)
-      let l = this.Fun.magnitude(normal);
-      normal.x /= l; normal.y /= l; normal.z /= l;
+      //Just to normalize:
+      normal.normalize();
 
       //If we're supposed to see the triangle, we calculate it.
       //We compare the similarity between normal and camera-triangle axis. 
       //This is done by using Dot product. 
-      let resNormal = normal.x * (triTranslated.p[0].x - this.vCamera.x) +
-        normal.y * (triTranslated.p[0].y - this.vCamera.y) +
-        normal.z * (triTranslated.p[0].z - this.vCamera.z)
+      let cameraAxis = triTranslated.p[0].subVectors(this.vCamera);
+      let resNormal = normal.dotProduct(cameraAxis);
 
       // DRAW STARTS HERE 
       if (resNormal < 0.0) {
         //Lighting
-        let lightDirection = new Vector(50, 0, 0);
-        let l = this.Fun.magnitude(lightDirection);
-        lightDirection.x /= l; lightDirection.y /= l; lightDirection.z /= l;
+        let lightDirection = new Vector(1, 0, 0);
+        
+        let lightDistance = lightDirection.distance(triTranslated.p[0]);
 
-        let lightDistance = 0;
-
+        //Preparing for dot product 
+        lightDirection.normalize();
+        
         //Choosing color according to light - object angle 
-        let dp = this.Fun.dotProduct(normal, lightDirection);
-        let lightStrength = 25;
+        let dp = normal.dotProduct(lightDirection);
+
+        //Distance to light matters too (intensity proportional to distance squared)
+        dp /= Math.pow(lightDistance, 2);
+        let lightStrength = 1500;
         //triTranslated.color = tri.color;
         triTranslated.color.addColor(dp * lightStrength, dp * lightStrength, dp * lightStrength);
 
@@ -197,12 +199,17 @@ export class HomeComponent implements OnInit {
     //Sort triangles from back to front
     trianglesToRaster.sort(this.Fun.sortTrianglesByDepth);
 
+    //Reset zBuffer
+    for (let i = 0; i < this.c_height * this.c_width; i++) {
+      this.zBuffer[0] = 0;
+    }
+
     //Draw triangles here 
     for (let i = 0; i < trianglesToRaster.length; i++) {
 
       //Using lighting (color)
       this.ctx.strokeStyle = trianglesToRaster[i].color.toStrokeStyle();
-      //this.ctx.fillStyle = trianglesToRaster[i].color.toStrokeStyle();
+      
       //Or this for debug (no lighting)
       //this.ctx.strokeStyle = "blue";
 

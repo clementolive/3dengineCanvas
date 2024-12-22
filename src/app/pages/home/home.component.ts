@@ -4,6 +4,8 @@ import { Matrix } from 'src/app/core/Matrix';
 import { Mesh } from 'src/app/core/Mesh';
 import { Triangle } from 'src/app/core/Triangle';
 import { Vector } from 'src/app/core/Vector';
+import { ZBuffer } from 'src/app/core/ZBuffer';
+import { AlgorithmsService } from 'src/app/services/algorithms.service';
 import { DrawService } from 'src/app/services/draw.service';
 import { Functions3dService } from 'src/app/services/functions3d.service';
 
@@ -39,11 +41,12 @@ export class HomeComponent implements OnInit {
   resultMesh: Mesh = new Mesh();
   vCamera = new Vector();
 
-  zBuffer: number[] = [];
+  zBuffer!: ZBuffer;
 
   constructor(private httpClient: HttpClient,
     private Fun: Functions3dService, 
-    private Draw: DrawService) { }
+    private Draw: DrawService, 
+    private Algo: AlgorithmsService) { }
 
   ngOnInit(): void {
     this.canvas = document.querySelector("canvas");
@@ -59,15 +62,13 @@ export class HomeComponent implements OnInit {
     }
 
     //Init zBuffer
-    for (let i = 0; i < this.c_height * this.c_width; i++) {
-      this.zBuffer.push(0);
-    }
+    this.zBuffer = new ZBuffer(this.c_height, this.c_width);
 
     //Projection matrix
     this.near = 100;
     this.far = 1000;
     this.aspectRatio = this.c_height / this.c_width;
-    this.fov = 60; // acts as zoom 
+    this.fov = 30; // acts as zoom 
     this.fovRad = 1 / Math.tan(this.fov * 0.5 / 180 * 3.14159); //acts as zoom 
     this.matProj.initProj(this.aspectRatio, this.fovRad, this.far, this.near);
 
@@ -77,9 +78,9 @@ export class HomeComponent implements OnInit {
     this.rotSpeedZ = 1;
 
     //Loading .OBJ file and parsing it, then we get data in our Mesh 
-    this.httpClient.get('assets/ship.obj', { responseType: 'text' })
+    this.httpClient.get('assets/teapot.obj', { responseType: 'text' })
       .subscribe(data => {
-        this.resultMesh = this.Draw.parsingObj(data);
+        this.resultMesh = this.Fun.parsingObj(data);
       });
 
     //Starting animation
@@ -190,6 +191,11 @@ export class HomeComponent implements OnInit {
         triProjected.p[1].y *= scaleFactor * this.c_height;
         triProjected.p[2].x *= scaleFactor * this.c_width;
         triProjected.p[2].y *= scaleFactor * this.c_height;
+        
+        triProjected.p[0].round();
+        triProjected.p[1].round();
+        triProjected.p[2].round();
+        //From now on, triangles coords are positioned in 2d canvas 
 
         //Store triangles to sort and display per depth 
         trianglesToRaster.push(triProjected);
@@ -197,12 +203,10 @@ export class HomeComponent implements OnInit {
     }
 
     //Sort triangles from back to front
-    trianglesToRaster.sort(this.Fun.sortTrianglesByDepth);
+    //trianglesToRaster.sort(this.Fun.sortTrianglesByDepth);
 
     //Reset zBuffer
-    for (let i = 0; i < this.c_height * this.c_width; i++) {
-      this.zBuffer[0] = 0;
-    }
+    this.zBuffer.reset();
 
     //Draw triangles here 
     for (let i = 0; i < trianglesToRaster.length; i++) {
@@ -213,14 +217,15 @@ export class HomeComponent implements OnInit {
       //Or this for debug (no lighting)
       //this.ctx.strokeStyle = "blue";
 
-      this.Draw.fillTriangle(trianglesToRaster[i], this.ctx);
+      //this.Draw.fillTriangle(trianglesToRaster[i], this.ctx, this.zBuffer);
+      this.Algo.fillTriangleBarycentric(trianglesToRaster[i], this.ctx, this.zBuffer);
 
       this.ctx.strokeStyle = "red";
       //this.Draw.drawTriangle(trianglesToRaster[i], this.ctx);
     }
 
     //setTimeout(() => {
-    window.requestAnimationFrame(this.onUserUpdate.bind(this));
+      window.requestAnimationFrame(this.onUserUpdate.bind(this));
     //}, 1000 / this.framerate);
   }
 

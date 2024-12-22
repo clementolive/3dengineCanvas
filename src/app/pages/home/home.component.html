@@ -1,7 +1,30 @@
+<div class="container text-white">
+    <div class="h2 mb-4 pb-4">3D Engine...with 2D HTML Canvas !</div>
 
-<div class="container">
-    <div class="h2">3D Engine with HTML Canvas</div>
+    <div class="row mt-2 pt-4">
+        <div class="col">
+            <canvas id="canvas" width="500" height="500" class="canvas-container rounded rounded-3 border border-3"></canvas>
+        </div>
+        <div class="col-6">
+            <div class="mb-2 text-justify text-info">
+                What you see is a 3D engine only made with the 2D API of HTML canvas.
+                The HTML canvas can actually use efficient 3D when associated with WebGL API. But it was more interesting to start from scratch.
+            <br><br>  
+                Because we draw pixels of a specific color, in a specific position and time, we can do everything.
+                Of course, that can't look good, because the 2D API was not made for this. Artifacts appear, and performance
+                start to go down real quick.
+                It was quite interesting to learn to apply 3D theory in that context.
+            <br><br>  
+                I started to make a structure with Light, Vector, Triangle, Mesh, Color. 
+                Then, I basically raycasted a positioned light to a 3D object (.obj) with the barycentric algorithm.
+                This method can be applied to any 2D engine/canvas.
+                I might redo that project with actual WebGL, or OpenGL.
+            <br>
+            </div>
+            <div class="text-warning">Warning : Because this calls 2D API in an unplanned way, this takes a decent chunk of
+                CPU.</div>
+            <div class="">In the meantime, please admire that obscure and pixelated teapot. </div>
+        </div>
+    </div>
 
-    <canvas id="canvas" width="500" height="500"></canvas>
-    
 </div>

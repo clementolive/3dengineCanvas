@@ -45,6 +45,30 @@ export class Functions3dService {
   }
 
 
+  // Parsing .OBJ file, returns the mesh 
+  parsingObj(fileContents: string): Mesh {
+    let resultMesh = new Mesh();
+
+    const OBJFile = require('obj-file-parser');
+
+    const objFile = new OBJFile(fileContents);
+
+    let parsedObj = objFile.parse(); // see description below
+
+    for (let i = 0; i < parsedObj.models[0].faces.length; i++) {
+      //Random triangle for storing the actual triangle 
+      resultMesh.m.push(new Triangle());
+
+      //For each triangle, we get the vertices from their indexes 
+      //We must substract 1 from index because .OBJ starts at 1
+      for (let j = 0; j < 3; j++) {
+        let vertexIndex = parsedObj.models[0].faces[i].vertices[j].vertexIndex;
+        resultMesh.m[i].p[j] = parsedObj.models[0].vertices[vertexIndex - 1];
+      }
+    }
+
+    return resultMesh;
+  }
 
   
 

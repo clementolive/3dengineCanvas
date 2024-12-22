@@ -12,6 +12,16 @@ export class Vector {
         this.w = w;
     }
 
+    setX(x: number){
+        this.x = x;
+    }
+    setY(y: number){
+        this.y = y;
+    }
+    setZ(z: number){
+        this.z = z;
+    }
+
     scale(s: number): void {
         this.x *= s;
         this.y *= s;
@@ -66,6 +76,13 @@ export class Vector {
         res.y = this.z * b.x - this.x * b.z;
         res.z = this.x * b.y - this.y * b.x;
         return res;
+    }
+
+    //Round values for use in arrays, ZBuffer, and 2D space overall 
+    round(){
+        this.x = Math.round(this.x);
+        this.y = Math.round(this.y);
+        this.z = Math.round(this.z);
     }
 
 
